@@ -1,0 +1,62 @@
+/* I'm horrible with organizing my CSS, so if you're reading this, I'm sorry */
+
+/* Set a background image by replacing the URL below */
+body {
+  padding-top: 75px;
+  padding-bottom: 40px;
+  background: url('../images/colors.jpg') no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  background-size: cover;
+  -o-background-size: cover;
+  }
+
+.uploaderBody {
+  padding-top: 75px;
+  padding-bottom: 40px;
+  background: url('../images/colorsBlur.jpg') no-repeat center center fixed;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  background-size: cover;
+  -o-background-size: cover;
+}
+
+#buttonRow button{
+  text-align: center;
+  width: 100%;
+  color: white;
+}
+
+#classA{
+  background-color:#F2561D;
+}
+
+#classB{
+  background-color:#39BF81;
+}
+
+#classC{
+  background-color:#047F8C;
+}
+
+#classD{
+  background-color:#013A40;
+}
+
+.inline p{
+  display: inline;
+}
+
+#updatePane button{
+  width: 100%;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+footer {
+  position:fixed;
+  left:0px;
+  bottom:0px;
+  height:30px;
+  width:100%;
+}
