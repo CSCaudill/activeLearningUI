@@ -6,6 +6,7 @@ from flask import (
     redirect)
 
 import pandas as pd
+import numpy as np
 import os
 import json
 
@@ -18,6 +19,10 @@ app = Flask(__name__)
 # App-level config vars
 app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///db/content.sqlite"
 app.config['UPLOAD_FOLDER'] = 'userData/'
+
+# This variable only needs to exist because we're bypassing the upload screen for simplicity.
+# In reality, this wouldn't exist and we'd default to asking users for a file.
+temp_fileName = "File1.xlsx"
 
 
 db = SQLAlchemy(app)
@@ -44,10 +49,15 @@ def setup():
 ##### ROUTES
 ###################################
 
+### NOTE: Removed the upload screen
 ### Renders upload screen
 @app.route("/")
 def upload():
-    return render_template("upload.html")
+    if os.path.isfile(app.config['UPLOAD_FOLDER'] + temp_fileName):
+        app.config['UPLOAD_FILE_PATH'] = os.path.join(app.config['UPLOAD_FOLDER'], temp_fileName)
+        return render_template("annotate.html")
+    else:
+        return render_template("upload.html")
 
 ### Save file and redirect to training UI
 @app.route("/saveFile", methods=['POST'])
@@ -63,25 +73,39 @@ def annotate():
     return render_template("annotate.html")
 
 ### Broadcast user's data via API for JavaScript to read
-### NOTE: We should probably add something in this route 
-### to compare IDs against previously annotated records to avoid presenting users with the same record.
 @app.route("/api/inputData")
 def dataAPI():
+
     # read the user's input file
-    df = pd.read_excel(app.config['UPLOAD_FILE_PATH'])
+    input_df = pd.read_excel(app.config['UPLOAD_FILE_PATH'])
+
+    # query the database for all IDs that have already been annotated
+    anno_ids = np.ravel(db.session.query(Annotation.id).all())
+
+    # Only continue with the records from input file that have not already been logged in the database.
+    if len(anno_ids) > 0:
+        untrained_df = input_df[~input_df['Service Request Number'].isin(anno_ids)]
+    else:
+        untrained_df = input_df
 
     # convert df to a list of dicts
-    df_list = df.to_dict('records')
+    df_list = untrained_df.to_dict('records')
+
     return jsonify(df_list)
+
 
 @app.route('/updateModel', methods = ['POST'])
 def get_post_javascript_data():
+
+    # receive the record ID and its annotation as a POST request from the AJAX request 
     rec_id = request.form['rec_id']
     classification = request.form['classification']
 
+    # create an instance of our Annotation class and commit it ot the database
     anno = Annotation(id=rec_id, annotation=classification)
     db.session.add(anno)
     db.session.commit()
+
     return rec_id
 
 
